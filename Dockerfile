@@ -1,18 +1,16 @@
-# Stage 1: Build React static assets
-FROM node:20-alpine AS frontend-build
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
 # Stage 2: Spin up the live Express API production server
 FROM node:20-alpine
 WORKDIR /app
 
-# Copy server code and install backend dependencies
+# 1. Copy package files directly into a server directory
 COPY server/package*.json ./server/
-RUN cd server && npm install --production
+
+# 2. Switch the Docker context inside the server directory cleanly
+WORKDIR /app/server
+RUN npm install --production
+
+# 3. Move back to the root app directory to copy the rest of the source
+WORKDIR /app
 COPY server/ ./server/
 
 # Pull down the compiled static React build from Stage 1
