@@ -1,122 +1,77 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useState, useEffect } from 'react';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [metrics, setMetrics] = useState({ cpu: 0, memory: 0, uptime: 0, platform: 'loading...' });
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        // Points to relative URL because backend serves frontend from the same origin
+        const res = await fetch('/api/metrics');
+        const data = await res.json();
+        setMetrics(data);
+      } catch (err) {
+        setError("Could not connect to live container metrics API");
+      }
+    };
+
+    fetchMetrics();
+    const interval = setInterval(fetchMetrics, 2000); // Poll every 2 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatUptime = (seconds) => {
+    const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    return `${h}:${m}:${s}`;
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={styles.container}>
+      <header style={styles.header}>
+        <h1>🚀 Live Container Production Dashboard</h1>
+        <p>Streaming actual operating system metrics from inside the running Docker container.</p>
+      </header>
 
-      <div className="ticks"></div>
+      {error && <div style={styles.errorAlert}>{error}</div>}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      <div style={styles.grid}>
+        <div style={styles.card}>
+          <h3>CI/CD Pipeline Status</h3>
+          <div style={styles.statusBadge}><span style={styles.greenDot}></span> Live & Healthy</div>
+          <p style={styles.cardText}>Engine: <strong>GitHub Actions</strong></p>
+          <p style={styles.cardText}>Target Host: <strong>Render Cloud Container</strong></p>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <div style={styles.card}>
+          <h3>Container Performance</h3>
+          <p style={styles.cardText}>🖥️ Real CPU Load: <strong>{metrics.cpu}%</strong></p>
+          <p style={styles.cardText}>💾 Real Memory Allocation: <strong>{metrics.memory}%</strong></p>
+          <p style={styles.cardText}>📦 OS Kernel Platform: <strong>{metrics.platform}</strong></p>
+        </div>
+
+        <div style={styles.card}>
+          <h3>Infrastructure Metadata</h3>
+          <p style={styles.cardText}>⏱️ Process Uptime: <strong>{formatUptime(metrics.uptime)}</strong></p>
+          <p style={styles.cardText}>🌐 Layer Architecture: <strong>Node + Express API</strong></p>
+          <p style={styles.cardText}>🐋 Virtualization: <strong>Docker Engine Container</strong></p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default App
+const styles = {
+  container: { fontFamily: 'Segoe UI, sans-serif', backgroundColor: '#0f172a', color: '#f8fafc', minHeight: '100vh', padding: '2rem' },
+  header: { borderBottom: '1px solid #334155', paddingBottom: '1rem', marginBottom: '2rem' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' },
+  card: { backgroundColor: '#1e293b', borderRadius: '8px', padding: '1.5rem', border: '1px solid #334155' },
+  cardText: { fontSize: '1.1rem', margin: '0.75rem 0', color: '#cbd5e1' },
+  statusBadge: { display: 'inline-flex', alignItems: 'center', backgroundColor: '#064e3b', color: '#34d399', padding: '0.5rem 1rem', borderRadius: '20px', fontWeight: 'bold', marginBottom: '1rem' },
+  greenDot: { width: '10px', height: '10px', backgroundColor: '#10b981', borderRadius: '50%', marginRight: '8px' },
+  errorAlert: { backgroundColor: '#7f1d1d', color: '#fca5a5', padding: '1rem', borderRadius: '6px', marginBottom: '1.5rem' }
+};
+
+export default App;
