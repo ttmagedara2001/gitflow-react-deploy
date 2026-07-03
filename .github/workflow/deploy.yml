@@ -31,4 +31,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/git-react-deployer:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/git-react-deploy:latest
