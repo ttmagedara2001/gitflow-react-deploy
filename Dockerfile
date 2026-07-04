@@ -5,7 +5,7 @@ WORKDIR /app
 # 1. Copy package files directly into a server directory
 COPY server/package*.json ./server/
 
-# 2. Switch the Docker context inside the server directory cleanly
+# 2. Switch the Docker context inside the server directory cleanl
 WORKDIR /app/server
 RUN npm install --production
 
