@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // API Endpoint to fetch genuine container metrics
-app.get('/api/metrics', async (theme, res) => {
+app.get('/api/metrics', async (req, res) => {
   try {
     const memory = await si.mem();
     const currentLoad = await si.currentLoad();
